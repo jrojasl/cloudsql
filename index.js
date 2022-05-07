@@ -5,6 +5,7 @@ const app = express();
 /**MySQL */
 const mysql = require('mysql');
 const { getCinemas, insertCinema, updateCinema, deleteCinema, createTable } = require('./execSql');
+const { connect, TeatroModel } = require('./mongo');
 
 /**Comunicación por JSON */
 app.use(express.json());
@@ -23,6 +24,7 @@ connection.connect(err => {
   }
   console.log('connected as id ' + connection.threadId);
 });
+connect();
 
 app.get('/cines', async (req, res)=> {
     try {
@@ -59,6 +61,44 @@ app.delete('/cines/:id', async (req, res)=> {
         res.status(400).json(error);
     }
 });
+app.get('/teatros', async(req,res)=>{
+    try {
+        // Creo variable donde guardo los teatros
+        const teatros= await TeatroModel.find()
+        res.json(teatros);
+    } catch (error) {
+        res.status(400).json(error);
+    }
+});
+app.post('/teatros', async(req, res) =>{
+    const {nombre, direccion} = req.body;
+    try {
+        const result = await TeatroModel.create({nombre,direccion})
+        res.json(result);
+    } catch (error) {
+        res.status(400).json(error);
+    }
+});
+app.put('/teatros/:id', async(req, res)=> {
+    const {nombre, direccion} = req.body;
+    const {id} = req.params;
+    try {
+        const result = await TeatroModel.findByIdAndUpdate(id,{nombre,direccion});
+        res.json(result);
+    } catch (error) {
+        res.status(400).json(error);
+    }
+
+});
+app.delete('/teatros/:id', async(req,res)=>{
+    const {id} = req.params;
+    try {
+        const result = await TeatroModel.findByIdAndDelete(id);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json(error);
+    }
+})
 
 /**Listen */
 app.listen(3000, () => {
