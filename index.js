@@ -5,6 +5,10 @@ const app = express();
 /**MySQL */
 const mysql = require('mysql');
 const { getCinemas, insertCinema, updateCinema, deleteCinema, createTable } = require('./execSql');
+const { admin } = require('./firebase');
+var serviceAccount = require("./reviewappja-firebase-adminsdk-6gi82-dc58c7328a.json");
+const { getFirestore } = require('firebase-admin/firestore');
+
 const { connect, TeatroModel } = require('./mongo');
 
 /**Comunicación por JSON */
@@ -24,7 +28,21 @@ connection.connect(err => {
   }
   console.log('connected as id ' + connection.threadId);
 });
+/**Connect mongo */
 connect();
+
+admin.initializeApp({credential: admin.credential.cert(serviceAccount)})
+
+const firestore = getFirestore();
+
+app.get('/places', async (req, res) => {
+    try {
+        const snap = await firestore.collection('places').get()
+        res.json(snap.docs.map(doc => doc.data()));
+    } catch (error) {
+        res.status(400).json(error);
+    }
+})
 
 app.get('/cines', async (req, res)=> {
     try {
